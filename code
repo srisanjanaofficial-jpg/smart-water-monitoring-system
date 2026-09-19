@@ -1,0 +1,66 @@
+#include <LiquidCrystal.h>
+
+// LCD pins: RS, E, D4, D5, D6, D7
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+// Ultrasonic sensor pins
+const int trigPin = 9;
+const int echoPin = 8;
+
+// Buzzer pin
+const int buzzerPin = 13;
+
+// Tank height
+const int tankHeight = 200;
+
+long duration;
+int distance;
+int waterLevel;
+
+void setup() {
+  lcd.begin(16, 2);              // Start LCD
+  Serial.begin(9600);            // Start Serial Monitor
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+}
+
+void loop() {
+  // Trigger ultrasonic pulse
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read echo duration
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+  waterLevel = tankHeight - distance;
+
+  // Update LCD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Water Level: ");
+  lcd.setCursor(0, 1);
+  lcd.print(waterLevel);
+  lcd.print(" cm     ");
+
+  // Print to Serial Monitor
+  Serial.print("Water Level: ");
+  Serial.print(waterLevel);
+  Serial.println(" cm");
+
+  // Buzzer + Serial + LCD alert
+  if (waterLevel > 190) {
+    digitalWrite(buzzerPin, HIGH);
+    lcd.setCursor(0, 0);
+    lcd.print("Tank is FULL!   ");
+
+    Serial.println("Tank is FULL!");
+  } else {
+    digitalWrite(buzzerPin, LOW);
+  }
+
+  delay(1000);  // 1 second delay
+}
